@@ -12,9 +12,7 @@ import json
 import logging
 import os.path
 import sys
-
 import requests
-
 
 logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s %(filename)s [%(levelname)s] %(message)s',
@@ -32,7 +30,7 @@ class wechat(object):
         logging.info('Send to user is: %s' % (user))
         logging.info('Send message is: %s' % (message))
        
-        conf = os.path.abspath('.') + '/conf/alertor.conf'
+        conf = '/conf/alertor.conf'
         config = ConfigParser.ConfigParser()
         config.read(conf)
 
@@ -68,7 +66,6 @@ class wechat(object):
 
        
 def main(argv):
-   
     sys.exit(wechat(argv[1], argv[2]).alert())
 
 if __name__ == '__main__':
