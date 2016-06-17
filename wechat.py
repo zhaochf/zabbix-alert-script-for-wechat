@@ -8,10 +8,20 @@ alertor for wechat
 @author: zhaochf
 """
 import ConfigParser
-import requests
 import json
+import logging
+import os.path
 import sys
-import getopt
+
+import requests
+
+
+logging.basicConfig(level=logging.INFO,
+                format='%(asctime)s %(filename)s [%(levelname)s] %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S',
+                filename='/tmp/alertor.log',
+                filemode='w')
+
 
 __URL_TEMPLATE_GET_TOKEN = "%s?corpid=%s&corpsecret=%s"
 __URL_TEMPLATE_SEND_MESSAGE = "%s?access_token=%s"
@@ -19,8 +29,10 @@ __URL_TEMPLATE_SEND_MESSAGE = "%s?access_token=%s"
 class wechat(object):
     
     def __init__(self, user, message):
+        logging.info('Send to user is: %s' % (user))
+        logging.info('Send message is: %s' % (message))
        
-        conf = 'conf/alertor.conf'
+        conf = os.path.abspath('.') + '/conf/alertor.conf'
         config = ConfigParser.ConfigParser()
         config.read(conf)
 
@@ -47,52 +59,17 @@ class wechat(object):
         return result['access_token'].encode('utf-8')
     
     def alert(self):
-        result = requests.post(self.__URL_TEMPLATE_SEND_MESSAGE % (self.__send_message_uri, self.__get_token()), self.__data)
+        logging.info('Post messages is: %s' % (self.__data))
+        result = requests.post(self.__URL_TEMPLATE_SEND_MESSAGE % (self.__send_message_uri, self.__get_token()), data=self.__data)
         result = json.loads(result.text)
-        return result['errcode']
+        result = result['errcode']
+        logging.info('Post result is: %s' % (result))
+        return result
 
-
-def usage():
-    print 'Usage:'
-    print 'wechat.sh -u user -m message'
-    print 'Send message to userid'
-    print 'Mandatory arguments to long options are mandatory for short options too.'
-    print '-h, --help: print help message.'
-    print '-v, --version: print script version'
-    print '-u, --user: send message to user'
-    print '-m, --message: send for message '
-    
-def version():
-    print 'wechat.py 1.0.0'
-    
-def OutPut(args):
-    print 'Hello, %s'%args
-        
+       
 def main(argv):
-    try:
-        opts, args = getopt.getopt(argv[1:], 'hvu:m:', ['help', 'version', 'user=', 'message='])
-    except getopt.GetoptError, err:
-        print str(err)
-        usage()
-        sys.exit(1)
- 
-    for opt, arg in opts:
-        if opt in ('-h', '--help'):
-            usage()
-            sys.exit(0)
-        elif opt in ('-v', '--version'):
-            version()
-            sys.exit(0)
-        elif opt in ('-u', '--user'):
-            user = arg
-        elif opt in ('-m', '--message'):
-            message = arg
-        else:
-            print '\033[31mERROR: unknown argument! \033[0m\n'
-            usage()
-            sys.exit(1)
-
-    sys.exit(wechat(user, message).alert())
+   
+    sys.exit(wechat(argv[1], argv[2]).alert())
 
 if __name__ == '__main__':
     main(sys.argv)
